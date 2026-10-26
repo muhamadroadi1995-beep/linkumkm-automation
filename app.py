@@ -75,8 +75,8 @@ if "permintaan_konsumen" not in st.session_state:
     st.session_state.permintaan_konsumen = [
         {
             "id": 1, 
-            "nama": "H. Ahmad Suyudi", 
-            "unit_kerja": "BRI Unit Ciwaringin", 
+            "nama": "Muhamad Roadi", 
+            "unit_kerja": "BRI Unit Arjawinangun II", 
             "layanan": "Rescoring (Skoring Ulang)", 
             "jumlah": 50,
             "url_target": "https://linkumkm.bri.co.id/umkmscore/mantri/175964",
