@@ -10,7 +10,7 @@ from playwright.async_api import async_playwright
 # --- KONFIGURASI UTAMA ---
 JUMLAH_PENGGUNA = 50    # Jumlah total pengguna yang diinginkan
 URL_TARGET = "https://linkumkm.bri.co.id/umkmscore/mantri/rivaldo-patria-kusuma.414110"
-MAX_CONCURRENT = 4       # Membatasi maksimal 5 browser berjalan bersamaan
+MAX_CONCURRENT = 3       # Membatasi maksimal 5 browser berjalan bersamaan
 
 fake = Faker('id_ID')
 DAFTAR_SEKTOR_USAHA = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]
