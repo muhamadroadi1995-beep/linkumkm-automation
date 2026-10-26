@@ -47,15 +47,15 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Inisialisasi Database Antrean Sesi Sementara (Session State)
+# Inisialisasi Database Antrean Sesi Sementara
 if "permintaan_konsumen" not in st.session_state:
     st.session_state.permintaan_konsumen = [
         {
             "id": 1, 
             "nama": "H. Ahmad Suyudi", 
-            "telepon": "081234567890", 
-            "sektor": "1", 
-            "layanan": "New Scoring (Pendaftaran Baru)", 
+            "unit_kerja": "BRI Unit Ciwaringin", 
+            "layanan": "Rescoring (Skoring Ulang)", 
+            "jumlah": 50,
             "url_target": "https://linkumkm.bri.co.id/umkmscore/mantri/175964",
             "status": "Menunggu Persetujuan Operator"
         }
@@ -76,57 +76,54 @@ st.markdown("""
 tab_konsumen, tab_operator = st.tabs(["📝 Form Pendaftaran Konsumen", "🔐 Portal Operator (Muhamad Roadi)"])
 
 # ==========================================
-# 1. FORM PENDAFTARAN KONSUMEN
+# 1. FORM PENDAFTARAN KONSUMEN (SIMPLIFIED)
 # ==========================================
 with tab_konsumen:
-    st.markdown("### 📋 Pengajuan Layanan Otomatisasi LinkUMKM")
-    st.markdown("Silakan isi data Anda, pilih jenis layanan yang diinginkan, dan masukkan URL Mantri BRI tujuan Anda. Data akan masuk ke sistem dan **h akan diproses setelah disetujui oleh Operator**.")
+    st.markdown("### 📋 Form Permintaan Layanan Konsumen")
+    st.markdown("Silakan isi data nama, unit kerja, pilih jenis pengerjaan, dan jumlah pengguna yang diinginkan. Permintaan akan diproses setelah disetujui oleh **Operator Muhamad Roadi**.")
     
     with st.form("form_mandiri_konsumen"):
         col1, col2 = st.columns(2)
         with col1:
-            nama_input = st.text_input("Nama Lengkap Usaha/Konsumen:")
-            telepon_input = st.text_input("Nomor WhatsApp/Telepon Aktif:")
-            sektor_input = st.selectbox(
-                "Sektor Usaha:",
-                options=["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"],
-                format_func=lambda x: f"Sektor Kategori {x}"
-            )
+            nama_input = st.text_input("Nama:", placeholder="Contoh: Muhamad Roadi")
+            unit_kerja_input = st.text_input("Unit Kerja:", placeholder="Contoh: BRI Cabang Cirebon Kartini")
         with col2:
             pilihan_layanan = st.selectbox(
-                "Pilih Jenis Pengerjaan:",
-                ("New Scoring (Pendaftaran Baru)", "Rescoring (Skoring Ulang)")
+                "Permintaan Pengerjaan:",
+                ("Rescoring (Skoring Ulang)", "New Scoring (Pendaftaran Baru)")
             )
-            url_tujuan_konsumen = st.text_input(
-                "URL Target Mantri BRI Tujuan:", 
-                value="https://linkumkm.bri.co.id/umkmscore/mantri/175964",
-                help="Masukkan link/URL mantri BRI tempat data Anda akan masuk."
-            )
+            jumlah_pengguna_input = st.number_input("Jumlah Pengguna:", min_value=1, max_value=200, value=50, step=1)
+            
+        url_tujuan_input = st.text_input(
+            "URL Target LinkUMKM Mantri BRI:", 
+            value="https://linkumkm.bri.co.id/umkmscore/mantri/175964",
+            help="Masukkan link target mantri tempat data akan diproses."
+        )
             
         submit_form = st.form_submit_button("📤 Kirim Permintaan ke Operator", type="primary", use_container_width=True)
         
         if submit_form:
-            if nama_input and telepon_input and url_tujuan_konsumen:
+            if nama_input and unit_kerja_input and url_tujuan_input:
                 new_id = len(st.session_state.permintaan_konsumen) + 1
                 st.session_state.permintaan_konsumen.append({
                     "id": new_id,
                     "nama": nama_input,
-                    "telepon": telepon_input,
-                    "sektor": sektor_input,
+                    "unit_kerja": unit_kerja_input,
                     "layanan": pilihan_layanan,
-                    "url_target": url_tujuan_konsumen,
+                    "jumlah": int(jumlah_pengguna_input),
+                    "url_target": url_tujuan_input,
                     "status": "Menunggu Persetujuan Operator"
                 })
-                st.success(f"✅ Berhasil! Permintaan atas nama **{nama_input}** ({pilihan_layanan}) telah dikirim. Menunggu persetujuan Operator Muhamad Roadi.")
+                st.success(f"✅ Berhasil! Permintaan dari **{nama_input}** ({pilihan_layanan} - {jumlah_pengguna_input} Pengguna) telah dikirim ke Operator Muhamad Roadi.")
             else:
-                st.warning("⚠️ Mohon lengkapi Nama, Nomor Telepon, dan URL Target Mantri.")
+                st.warning("⚠️ Mohon lengkapi Nama Konsumen, Unit Kerja, dan URL Target Mantri.")
 
 # ==========================================
 # 2. PORTAL OPERATOR (MUHAMAD ROADI)
 # ==========================================
 with tab_operator:
     if not st.session_state.operator_logged_in:
-        # LOGIN SCREEN
+        # LOGIN SCREEN OPERATOR
         st.markdown("<br>", unsafe_allow_html=True)
         c1, c2, c3 = st.columns([1, 1.2, 1])
         with c2:
@@ -161,8 +158,8 @@ with tab_operator:
                 st.rerun()
                 
         st.markdown("---")
-        st.markdown("### 📥 Daftar Permintaan Layanan Masuk dari Konsumen")
-        st.markdown("Setiap baris konsumen memiliki **Target URL** dan **Jenis Layanan** pilihannya masing-masing. Sistem otomatisasi hanya akan berjalan jika operator menekan tombol **Setujui & Jalankan**.")
+        st.markdown("### 📥 Daftar Permintaan Pengerjaan dari Konsumen")
+        st.markdown("Berikut adalah antrean masuk dari konsumen. Tinjau permintaan pengerjaan dan jumlah pengguna, lalu klik **Setujui & Jalankan** untuk mengeksekusi.")
         
         if not st.session_state.permintaan_konsumen:
             st.info("Belum ada permintaan dari konsumen.")
@@ -170,9 +167,11 @@ with tab_operator:
             for idx, item in enumerate(st.session_state.permintaan_konsumen):
                 with st.container():
                     st.markdown(f"""
-                        <div style="background: #ffffff; padding: 15px; border-radius: 10px; border: 1px solid #E2E8F0; margin-bottom: 10px;">
-                            <b>👤 Konsumen:</b> {item['nama']} ({item['telepon']})<br>
-                            <b>⚙️ Layanan:</b> <span style="color: #003366; font-weight: bold;">{item['layanan']}</span><br>
+                        <div style="background: #ffffff; padding: 18px; border-radius: 12px; border: 1px solid #E2E8F0; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+                            <h4 style="margin: 0 0 8px 0; color: #0A192F;">👤 Konsumen: {item['nama']}</h4>
+                            <b>🏢 Unit Kerja:</b> {item['unit_kerja']}<br>
+                            <b>⚙️ Jenis Pengerjaan:</b> <span style="color: #003366; font-weight: bold;">{item['layanan']}</span><br>
+                            <b>👥 Jumlah Pengguna:</b> <span style="background: #E2E8F0; padding: 2px 8px; border-radius: 6px; font-weight: bold;">{item['jumlah']} Pengguna</span><br>
                             <b>🎯 Target URL:</b> <a href="{item['url_target']}" target="_blank">{item['url_target']}</a><br>
                             <b>📌 Status:</b> <i>{item['status']}</i>
                         </div>
@@ -184,32 +183,32 @@ with tab_operator:
                         st.write("") # Spacer
                     with col_act2:
                         if item['status'] == "Menunggu Persetujuan Operator":
-                            if st.button("✅ Setujui & Jalankan", key=f"run_btn_{idx}", type="primary", use_content_width=True):
+                            if st.button(f"✅ Setujui & Jalankan ({item['jumlah']} User)", key=f"run_btn_{idx}", type="primary", use_container_width=True):
                                 st.markdown("---")
-                                st.markdown(f"### 📊 Live Eksekusi untuk: {item['nama']}")
+                                st.markdown(f"### 📊 Live Eksekusi: {item['layanan']} ({item['jumlah']} Pengguna)")
                                 
-                                with st.status("⚡ Menjalankan Mesin Automation...", expanded=True) as status_box:
+                                with st.status("⚡ Menjalankan Mesin Automation Playwright & OCR...", expanded=True) as status_box:
                                     try:
                                         if "New Scoring" in item['layanan']:
                                             import NEWSCORINGPERFECT as target_script
                                         else:
                                             import RESCORINGPERFEC as target_script
                                             
-                                        # Set target sesuai pilihan konsumen tersebut
+                                        # Set parameter sesuai pengajuan konsumen
                                         target_script.URL_TARGET = item['url_target']
-                                        target_script.JUMLAH_PENGGUNA = 1 # Diproses 1 per 1 sesuai data konsumen
+                                        target_script.JUMLAH_PENGGUNA = item['jumlah']
                                         
-                                        st.write(f"🤖 Memproses data atas nama {item['nama']}...")
+                                        st.write(f"🤖 Memproses {item['jumlah']} pengguna untuk {item['nama']} ({item['unit_kerja']})...")
                                         asyncio.run(target_script.main())
                                         
                                         st.session_state.permintaan_konsumen[idx]['status'] = "✅ Selesai Diproses"
-                                        status_box.update(label="✅ Eksekusi Berhasil Selesai!", state="complete", expanded=False)
-                                        st.success(f"🎉 Data {item['nama']} sukses diproses!")
+                                        status_box.update(label="✅ Eksekusi Berhasil Selesai Tuntas!", state="complete", expanded=False)
+                                        st.success(f"🎉 Berhasil memproses {item['jumlah']} pengguna untuk konsumen {item['nama']}!")
                                         st.rerun()
                                     except Exception as err:
-                                        status_box.update(label="❌ Terjadi Kendala", state="error", expanded=True)
+                                        status_box.update(label="❌ Terjadi Kendala Saat Eksekusi", state="error", expanded=True)
                                         st.error(f"Error: {err}")
                         else:
-                            st.success("Status: Selesai / Telah Dieksekusi")
+                            st.success("✅ Status: Selesai Diproses")
                 
                 st.markdown("---")
