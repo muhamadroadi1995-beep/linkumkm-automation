@@ -9,7 +9,7 @@ def install_playwright():
 
 install_playwright()
 
-# --- KONFIGURASI TAMPILAN DASHBOARD MEWAH ---
+# --- KONFIGURASI TAMPILAN DASHBOARD MEWAH & RAPIH ---
 st.set_page_config(
     page_title="Portal Layanan LinkUMKM BRI", 
     page_icon="⚡", 
@@ -27,13 +27,36 @@ st.markdown("""
         box-shadow: 0 8px 25px rgba(0,0,0,0.15);
         border: 1px solid rgba(255,255,255,0.1);
     }
-    .card-box {
-        background-color: #FFFFFF;
-        padding: 22px;
-        border-radius: 14px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    .request-card {
+        background: #FFFFFF;
+        padding: 24px;
+        border-radius: 16px;
         border: 1px solid #E2E8F0;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.03);
         margin-bottom: 20px;
+        transition: all 0.3s ease;
+    }
+    .request-card:hover {
+        box-shadow: 0 6px 22px rgba(0,0,0,0.08);
+        border-color: #CBD5E1;
+    }
+    .badge-new {
+        background-color: #E0F2FE;
+        color: #0369A1;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        display: inline-block;
+    }
+    .badge-rescore {
+        background-color: #FEF3C7;
+        color: #B45309;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 700;
+        display: inline-block;
     }
     .login-box {
         max-width: 400px;
@@ -76,7 +99,7 @@ st.markdown("""
 tab_konsumen, tab_operator = st.tabs(["📝 Form Pendaftaran Konsumen", "🔐 Portal Operator (Muhamad Roadi)"])
 
 # ==========================================
-# 1. FORM PENDAFTARAN KONSUMEN (SIMPLIFIED)
+# 1. FORM PENDAFTARAN KONSUMEN
 # ==========================================
 with tab_konsumen:
     st.markdown("### 📋 Form Permintaan Layanan Konsumen")
@@ -159,56 +182,70 @@ with tab_operator:
                 
         st.markdown("---")
         st.markdown("### 📥 Daftar Permintaan Pengerjaan dari Konsumen")
-        st.markdown("Berikut adalah antrean masuk dari konsumen. Tinjau permintaan pengerjaan dan jumlah pengguna, lalu klik **Setujui & Jalankan** untuk mengeksekusi.")
+        st.markdown("Tinjau detail pengajuan konsumen di bawah ini. Eksekusi otomatisasi hanya berjalan setelah operator menyetujui.")
         
         if not st.session_state.permintaan_konsumen:
             st.info("Belum ada permintaan dari konsumen.")
         else:
             for idx, item in enumerate(st.session_state.permintaan_konsumen):
-                with st.container():
-                    st.markdown(f"""
-                        <div style="background: #ffffff; padding: 18px; border-radius: 12px; border: 1px solid #E2E8F0; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
-                            <h4 style="margin: 0 0 8px 0; color: #0A192F;">👤 Konsumen: {item['nama']}</h4>
-                            <b>🏢 Unit Kerja:</b> {item['unit_kerja']}<br>
-                            <b>⚙️ Jenis Pengerjaan:</b> <span style="color: #003366; font-weight: bold;">{item['layanan']}</span><br>
-                            <b>👥 Jumlah Pengguna:</b> <span style="background: #E2E8F0; padding: 2px 8px; border-radius: 6px; font-weight: bold;">{item['jumlah']} Pengguna</span><br>
-                            <b>🎯 Target URL:</b> <a href="{item['url_target']}" target="_blank">{item['url_target']}</a><br>
-                            <b>📌 Status:</b> <i>{item['status']}</i>
-                        </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # Aksi Persetujuan Eksekusi Langsung per Konsumen
-                    col_act1, col_act2 = st.columns([2, 1])
-                    with col_act1:
-                        st.write("") # Spacer
-                    with col_act2:
-                        if item['status'] == "Menunggu Persetujuan Operator":
-                            if st.button(f"✅ Setujui & Jalankan ({item['jumlah']} User)", key=f"run_btn_{idx}", type="primary", use_container_width=True):
-                                st.markdown("---")
-                                st.markdown(f"### 📊 Live Eksekusi: {item['layanan']} ({item['jumlah']} Pengguna)")
-                                
-                                with st.status("⚡ Menjalankan Mesin Automation Playwright & OCR...", expanded=True) as status_box:
-                                    try:
-                                        if "New Scoring" in item['layanan']:
-                                            import NEWSCORINGPERFECT as target_script
-                                        else:
-                                            import RESCORINGPERFEC as target_script
-                                            
-                                        # Set parameter sesuai pengajuan konsumen
-                                        target_script.URL_TARGET = item['url_target']
-                                        target_script.JUMLAH_PENGGUNA = item['jumlah']
-                                        
-                                        st.write(f"🤖 Memproses {item['jumlah']} pengguna untuk {item['nama']} ({item['unit_kerja']})...")
-                                        asyncio.run(target_script.main())
-                                        
-                                        st.session_state.permintaan_konsumen[idx]['status'] = "✅ Selesai Diproses"
-                                        status_box.update(label="✅ Eksekusi Berhasil Selesai Tuntas!", state="complete", expanded=False)
-                                        st.success(f"🎉 Berhasil memproses {item['jumlah']} pengguna untuk konsumen {item['nama']}!")
-                                        st.rerun()
-                                    except Exception as err:
-                                        status_box.update(label="❌ Terjadi Kendala Saat Eksekusi", state="error", expanded=True)
-                                        st.error(f"Error: {err}")
-                        else:
-                            st.success("✅ Status: Selesai Diproses")
+                # Tentukan badge warna berdasarkan jenis layanan
+                badge_html = f'<span class="badge-new">{item["layanan"]}</span>' if "New" in item['layanan'] else f'<span class="badge-rescore">{item["layanan"]}</span>'
                 
-                st.markdown("---")
+                # Tentukan warna status
+                status_color = "#D97706" if item['status'] == "Menunggu Persetujuan Operator" else "#059669"
+                
+                # Render Kartu Rapi
+                st.markdown(f"""
+                    <div class="request-card">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                            <div>
+                                <h3 style="margin: 0; color: #0A192F; font-size: 18px;">👤 {item['nama']}</h3>
+                                <p style="margin: 3px 0 0 0; color: #64748B; font-size: 14px;">🏢 Unit Kerja: <b>{item['unit_kerja']}</b></p>
+                            </div>
+                            <div>
+                                {badge_html}
+                            </div>
+                        </div>
+                        <hr style="margin: 10px 0; border: none; border-top: 1px solid #F1F5F9;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; font-size: 14px; color: #334155; margin-bottom: 15px;">
+                            <div>👥 <b>Jumlah Pengguna:</b> <span style="background: #F1F5F9; padding: 2px 8px; border-radius: 6px; font-weight: bold;">{item['jumlah']} User</span></div>
+                            <div>📌 <b>Status:</b> <span style="color: {status_color}; font-weight: bold;">{item['status']}</span></div>
+                        </div>
+                        <div style="font-size: 13px; color: #64748B; background: #F8FAFC; padding: 8px 12px; border-radius: 8px; word-break: break-all;">
+                            🎯 <b>Target URL:</b> <a href="{item['url_target']}" target="_blank" style="color: #0284C7; text-decoration: none;">{item['url_target']}</a>
+                        </div>
+                    </div>
+                """, unsafe_allow_html=True)
+                
+                # Tombol Aksi di Luar HTML agar Native Streamlit Bekerja Sempurna
+                col_sp, col_btn = [st.columns([2.5, 1])[0], st.columns([2.5, 1])[1]]
+                with col_btn:
+                    if item['status'] == "Menunggu Persetujuan Operator":
+                        if st.button(f"✅ Setujui & Jalankan", key=f"run_btn_{idx}", type="primary", use_container_width=True):
+                            st.markdown("---")
+                            st.markdown(f"### 📊 Live Eksekusi: {item['layanan']} ({item['jumlah']} Pengguna)")
+                            
+                            with st.status("⚡ Menjalankan Mesin Automation Playwright & OCR...", expanded=True) as status_box:
+                                try:
+                                    if "New Scoring" in item['layanan']:
+                                        import NEWSCORINGPERFECT as target_script
+                                    else:
+                                        import RESCORINGPERFEC as target_script
+                                        
+                                    target_script.URL_TARGET = item['url_target']
+                                    target_script.JUMLAH_PENGGUNA = item['jumlah']
+                                    
+                                    st.write(f"🤖 Memproses {item['jumlah']} pengguna untuk {item['nama']} ({item['unit_kerja']})...")
+                                    asyncio.run(target_script.main())
+                                    
+                                    st.session_state.permintaan_konsumen[idx]['status'] = "✅ Selesai Diproses"
+                                    status_box.update(label="✅ Eksekusi Berhasil Selesai Tuntas!", state="complete", expanded=False)
+                                    st.success(f"🎉 Berhasil memproses {item['jumlah']} pengguna untuk konsumen {item['nama']}!")
+                                    st.rerun()
+                                except Exception as err:
+                                    status_box.update(label="❌ Terjadi Kendala Saat Eksekusi", state="error", expanded=True)
+                                    st.error(f"Error: {err}")
+                    else:
+                        st.markdown("<div style='text-align: right; color: #059669; font-weight: bold; padding-top: 5px;'>✅ Selesai Diproses</div>", unsafe_allow_html=True)
+                
+                st.markdown("<br>", unsafe_allow_html=True)
