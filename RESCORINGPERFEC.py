@@ -413,7 +413,7 @@ async def main():
     jumlah_yang_harus_dibuat = JUMLAH_PENGGUNA
 
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=False, args=["--start-maximized"])
+        browser = await p.chromium.launch(headless=True, args=["--start-maximized"])
 
         while total_berhasil_sekarang < JUMLAH_PENGGUNA:
             print("\n" + "=" * 65)
