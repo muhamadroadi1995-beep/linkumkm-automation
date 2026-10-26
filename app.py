@@ -85,8 +85,8 @@ with tab_konsumen:
     with st.form("form_mandiri_konsumen"):
         col1, col2 = st.columns(2)
         with col1:
-            nama_input = st.text_input("Nama:", placeholder="Contoh: Muhamad Roadi")
-            unit_kerja_input = st.text_input("Unit Kerja:", placeholder="Contoh: BRI Cabang Cirebon Kartini")
+            nama_input = st.text_input("Nama Konsumen / Pemohon:", placeholder="Contoh: Budi Santoso")
+            unit_kerja_input = st.text_input("Unit Kerja / Nama Mantri:", placeholder="Contoh: BRI Unit Ciwaringin / Mantri Ahmad")
         with col2:
             pilihan_layanan = st.selectbox(
                 "Permintaan Pengerjaan:",
